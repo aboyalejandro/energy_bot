@@ -36,8 +36,8 @@ logger = logging.getLogger(__name__)
 CHOOSING, TYPING_REPLY, TYPING_CHOICE = range(3)
 
 reply_keyboard = [
-    ['Age', 'Favourite colour'],
-    ['Number of siblings', 'Something else...'],
+    ['Washing machine', 'Oven'],
+    ['Size of house', 'Heater'],
     ['Done'],
 ]
 markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
@@ -52,8 +52,12 @@ def facts_to_str(user_data: Dict[str, str]) -> str:
 def start(update: Update, context: CallbackContext) -> int:
     """Start the conversation and ask user for input."""
     update.message.reply_text(
-        "Hi! My name is Doctor Botter. I will hold a more complex conversation with you. "
-        "Why don't you tell me something about yourself?",
+        "Hi! My name is Energy \U0001F4A1 Bot \U0001F916. I will ask you a few questions.\n\n"
+        #"I have listed the most important appliances for a house."
+        "\U0001F449 Please pick the appliances in your home and add the power consumption of these appliances in Watts.\n\n"
+        "\U0001F449 In addition to that please add the size of your house/appartment in square meters (sq m)\n\n"
+        "After you answer these questions I will optimize \U0001F4B9 your energy consumption and give you "
+        "suggestions on when you should use these appliances.",
         reply_markup=markup,
     )
 
@@ -64,18 +68,20 @@ def regular_choice(update: Update, context: CallbackContext) -> int:
     """Ask the user for info about the selected predefined choice."""
     text = update.message.text
     context.user_data['choice'] = text
-    update.message.reply_text(f'Your {text.lower()}? Yes, I would love to hear about that!')
+    update.message.reply_text(f'Your {text.lower()}? Tell me the power in Watts.')
 
     return TYPING_REPLY
 
 
 def custom_choice(update: Update, context: CallbackContext) -> int:
-    """Ask the user for a description of a custom category."""
+    """Ask the user for the size of house."""
     update.message.reply_text(
-        'Alright, please send me the category first, for example "Most impressive skill"'
+        'Alright, please tell me the size of your house in square meters! (e.g. 50)"'
     )
+    text = update.message.text
+    context.user_data['choice'] = text
 
-    return TYPING_CHOICE
+    return TYPING_REPLY
 
 
 def received_information(update: Update, context: CallbackContext) -> int:
@@ -88,7 +94,7 @@ def received_information(update: Update, context: CallbackContext) -> int:
 
     update.message.reply_text(
         "Neat! Just so you know, this is what you already told me:"
-        f"{facts_to_str(user_data)} You can tell me more, or change your opinion"
+        f"{facts_to_str(user_data)}You can tell me more, or change your opinion"
         " on something.",
         reply_markup=markup,
     )
@@ -103,11 +109,13 @@ def done(update: Update, context: CallbackContext) -> int:
         del user_data['choice']
 
     update.message.reply_text(
-        f"I learned these facts about you: {facts_to_str(user_data)}Until next time!",
+        f"I learned these facts about your house: {facts_to_str(user_data)}Until next time!",
         reply_markup=ReplyKeyboardRemove(),
     )
 
     user_data.clear()
+    #for i in user_data.items():
+    #    print(i)
     return ConversationHandler.END
 
 
@@ -125,9 +133,9 @@ def main() -> None:
         states={
             CHOOSING: [
                 MessageHandler(
-                    Filters.regex('^(Age|Favourite colour|Number of siblings)$'), regular_choice
+                    Filters.regex('^(Washing machine|Oven|Heater)$'), regular_choice
                 ),
-                MessageHandler(Filters.regex('^Something else...$'), custom_choice),
+                MessageHandler(Filters.regex('^Size of house$'), custom_choice),
             ],
             TYPING_CHOICE: [
                 MessageHandler(
