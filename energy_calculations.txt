@@ -1,0 +1,70 @@
+#The prices per hour in a list, from 00h to 23h
+
+hourly_prices=[0.2,0.25,0.35,...] 
+
+#Dictionary of the appliances and the size of the house
+
+appliances_dict=["Washing machine":234, "Oven":534, "Size of house":645, "Heater": 32423]
+
+
+#Calculations:
+
+#In order to take the Size of the house into account, I found that in average in Europe we have a consumption of 180 kWh/year:
+#https://ec.europa.eu/energy/eu-buildings-factsheets-topics-tree/energy-use-buildings_en
+#So we can predict a consumption of: 
+
+energy_sqm = (size_of_house*180)/365
+
+#Now we find the best two consecutives hours to put the appliances by day and if we find that these two hours are by night
+#we will need to find the cheapest hours for the day in order to turn ON "Washing_Machine" and "Oven" during the day:
+
+min_sum_day = 5.0
+act_sum_day = 0
+
+min_sum = 5.0
+act_sum = 0
+
+cheapest_hours = 0
+cheapest_day_hours = 0
+  
+  for element in hourly_prices in range(:-1):
+  {
+        act_sum = hourly_prices[element] + hourly_prices[element+1]
+
+	  if act_sum < min_sum:
+	  {
+		min_sum = act_sum
+		cheapest_hours = element
+	  }
+      
+  }
+
+#We need to now what is the hour and if it is between 9-18 or 19-7:
+
+ if cheapest_hours < 9 OR cheapest_hours > 18:
+ {
+	for element in hourly_prices in range(8:16):
+  	{
+        act_sum_day = hourly_prices[element] + hourly_prices[element+1]
+
+	  if act_sum_day < min_sum_day:
+	  {
+		min_sum_day = act_sum_day
+		cheapest_day_hours = element
+	  }
+      
+  	}
+ }
+ 
+
+#Once we have the perfect consecutive hours by day and maybe by night, we compare them and send the final plan:
+
+  if cheapest_day_hours != cheapest_hours:
+  {
+	bot.sendmessage= ("My recommendation is to turn on your Oven and Washing Machine at ", cheapest_day_hours)
+	bot.sendmessage= ("Configure your Heater to Turn ON at ", cheapest_hours)
+  }	
+  else:
+  {
+	bot.sendmessage= ("My recommendation is to turn ON your Oven, Washing Machine and Heater at ", cheapest_hours)
+  }
